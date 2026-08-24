@@ -37,19 +37,36 @@ The platform allows users to manage clients, projects and tasks through a modern
 
 🚧 Under development
 
-## Local backend setup
+## Local development
 
-From the repository root, copy the environment template, replace the database
-password with a local development value, and start PostgreSQL:
+Copy the environment template and replace the database password with a local
+development value before using either workflow:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d db
 ```
 
-Then prepare and run the backend:
+### Docker stack
+
+Start PostgreSQL and the Django backend, including migrations:
 
 ```powershell
+docker compose up --build
+```
+
+The API is available at [http://localhost:8000/api/health/](http://localhost:8000/api/health/)
+by default. Stop and remove the containers without deleting database data with:
+
+```powershell
+docker compose down
+```
+
+### Local backend with PostgreSQL in Docker
+
+Start only PostgreSQL, then prepare and run Django locally:
+
+```powershell
+docker compose up -d db
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
