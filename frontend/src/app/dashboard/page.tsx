@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { AppHeader } from "@/components/layout/app-header";
 import { authUserSchema } from "@/lib/auth/schemas";
 import type { AuthUser } from "@/lib/types/auth";
 
@@ -11,7 +13,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,43 +54,10 @@ export default function DashboardPage() {
     return () => controller.abort();
   }, [router]);
 
-  async function logout() {
-    setIsLoggingOut(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (!response.ok) {
-        setError("Unable to sign out. Please try again.");
-        setIsLoggingOut(false);
-        return;
-      }
-
-      setUser(null);
-      router.replace("/login");
-      router.refresh();
-    } catch {
-      setError("Unable to connect to the server. Please try again.");
-      setIsLoggingOut(false);
-    }
-  }
-
   return (
     <main className="min-h-screen px-6 py-10 sm:px-10">
       <div className="mx-auto max-w-5xl">
-        <header className="flex items-center justify-between border-b border-slate-200 pb-6">
-          <span className="text-sm font-semibold tracking-[0.18em] text-indigo-600 uppercase">
-            FlowBoard
-          </span>
-          <button
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            type="button"
-            onClick={logout}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? "Signing out..." : "Sign out"}
-          </button>
-        </header>
+        <AppHeader />
 
         <section className="py-16">
           {!user && !error ? (
@@ -112,10 +80,16 @@ export default function DashboardPage() {
               </h1>
               <p className="mt-3 text-slate-600">Signed in as {user.email}</p>
               <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white p-8">
-                <h2 className="font-semibold text-slate-900">A clear place to begin</h2>
+                <h2 className="font-semibold text-slate-900">Start with your clients</h2>
                 <p className="mt-2 leading-7 text-slate-600">
-                  Your project workspace will be built here in the next stage.
+                  Keep contact details organized and available for the work ahead.
                 </p>
+                <Link
+                  href="/clients"
+                  className="mt-5 inline-block rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-500"
+                >
+                  View clients
+                </Link>
               </div>
             </div>
           ) : null}

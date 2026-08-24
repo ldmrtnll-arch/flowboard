@@ -47,12 +47,6 @@ export function loginWithBackend(input: LoginInput): Promise<BackendResult> {
   });
 }
 
-export function getUserWithBackend(access: string): Promise<BackendResult> {
-  return jsonRequest("/api/auth/me/", {
-    headers: { Authorization: `Bearer ${access}` },
-  });
-}
-
 export function refreshWithBackend(refresh: string): Promise<BackendResult> {
   return jsonRequest("/api/auth/refresh/", {
     method: "POST",

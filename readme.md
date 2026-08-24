@@ -105,3 +105,16 @@ token; sign in separately to obtain an access and refresh token.
   token.
 - `GET /api/auth/me/` — return the authenticated user's public fields using
   `Authorization: Bearer <access-token>`.
+
+## Client management
+
+Authenticated users can create, list, view, update, and delete their own clients.
+Ownership is assigned server-side, and each user can access only their own records.
+
+```text
+GET    /api/clients/
+POST   /api/clients/
+GET    /api/clients/<id>/
+PATCH  /api/clients/<id>/
+DELETE /api/clients/<id>/
+```
