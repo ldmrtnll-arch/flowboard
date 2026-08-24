@@ -2,26 +2,13 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import {
-  ACCESS_COOKIE_NAME,
-  REFRESH_COOKIE_NAME,
-} from "@/lib/auth/constants";
-import { clearAuthCookies, setAccessCookie } from "@/lib/auth/cookies";
+  applySessionChange,
+  authenticatedBackendFetch,
+} from "@/lib/auth/authenticated-backend";
 import {
-  getUserWithBackend,
-  parseAccessToken,
   parseAuthUser,
-  refreshWithBackend,
 } from "@/lib/auth/server";
 
-
-function unauthorizedResponse() {
-  const response = NextResponse.json(
-    { message: "Authentication is required." },
-    { status: 401 },
-  );
-  clearAuthCookies(response);
-  return response;
-}
 
 function unavailableResponse() {
   return NextResponse.json(
@@ -30,58 +17,28 @@ function unavailableResponse() {
   );
 }
 
-async function refreshAndLoadUser(refresh: string) {
-  const refreshed = await refreshWithBackend(refresh);
-
-  if (!refreshed.ok) {
-    return refreshed.status >= 500 ? unavailableResponse() : unauthorizedResponse();
-  }
-
-  const token = parseAccessToken(refreshed.payload);
-  if (!token.success) {
-    return unauthorizedResponse();
-  }
-
-  const userResult = await getUserWithBackend(token.data.access);
-  if (!userResult.ok) {
-    return userResult.status === 401
-      ? unauthorizedResponse()
-      : unavailableResponse();
-  }
-
-  const user = parseAuthUser(userResult.payload);
-  if (!user) {
-    return unavailableResponse();
-  }
-
-  const response = NextResponse.json(user);
-  setAccessCookie(response, token.data.access);
-  return response;
-}
-
 export async function GET(request: NextRequest) {
-  const access = request.cookies.get(ACCESS_COOKIE_NAME)?.value;
-  const refresh = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
-
   try {
-    if (access) {
-      const userResult = await getUserWithBackend(access);
-
-      if (userResult.ok) {
-        const user = parseAuthUser(userResult.payload);
-        return user ? NextResponse.json(user) : unavailableResponse();
-      }
-
-      if (userResult.status !== 401) {
-        return unavailableResponse();
-      }
+    const result = await authenticatedBackendFetch(request, "/api/auth/me/");
+    if (!result.ok) {
+      const response = NextResponse.json(
+        result.status === 401
+          ? { message: "Authentication is required." }
+          : { message: "Unable to connect to the server. Please try again." },
+        { status: result.status },
+      );
+      applySessionChange(response, result);
+      return response;
     }
 
-    if (!refresh) {
-      return unauthorizedResponse();
+    const user = parseAuthUser(result.payload);
+    if (!user) {
+      return unavailableResponse();
     }
 
-    return await refreshAndLoadUser(refresh);
+    const response = NextResponse.json(user);
+    applySessionChange(response, result);
+    return response;
   } catch {
     return unavailableResponse();
   }
