@@ -13,6 +13,8 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at top, rgba(224, 231, 255, 0.7), transparent 38rem),
+    var(--background);
   color: var(--foreground);
 }

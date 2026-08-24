@@ -76,6 +76,22 @@ pytest
 python manage.py runserver
 ```
 
+## Frontend auth
+
+Next.js acts as a Backend for Frontend: the browser calls same-origin Next.js
+routes, and those server-side handlers call Django. Access and refresh JWTs stay
+in HttpOnly cookies, while `BACKEND_API_URL` remains server-only.
+
+To run the web authentication flow locally:
+
+```powershell
+Copy-Item frontend/.env.example frontend/.env.local
+# Set BACKEND_API_URL in frontend/.env.local for the local Django address.
+docker compose up --build -d
+cd frontend
+npm run dev
+```
+
 ## Authentication API
 
 Authentication uses JWT Bearer tokens. Registering an account does not issue a
