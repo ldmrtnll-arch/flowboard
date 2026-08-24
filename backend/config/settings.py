@@ -10,10 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+REPOSITORY_ROOT = BASE_DIR.parent
+
+load_dotenv(REPOSITORY_ROOT / ".env")
+
+
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise ImproperlyConfigured(f"Missing required environment variable: {name}")
+    return value
 
 
 # Quick-start development settings - unsuitable for production
@@ -76,8 +90,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": required_env("POSTGRES_DB"),
+        "USER": required_env("POSTGRES_USER"),
+        "PASSWORD": required_env("POSTGRES_PASSWORD"),
+        "HOST": required_env("POSTGRES_HOST"),
+        "PORT": required_env("POSTGRES_PORT"),
     }
 }
 
