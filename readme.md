@@ -75,3 +75,17 @@ python manage.py migrate
 pytest
 python manage.py runserver
 ```
+
+## Authentication API
+
+Authentication uses JWT Bearer tokens. Registering an account does not issue a
+token; sign in separately to obtain an access and refresh token.
+
+- `POST /api/auth/register/` — create an account with `email`, `password`, and
+  optional `first_name` and `last_name`.
+- `POST /api/auth/login/` — obtain `access` and `refresh` tokens with `email`
+  and `password`.
+- `POST /api/auth/refresh/` — exchange a valid `refresh` token for a new access
+  token.
+- `GET /api/auth/me/` — return the authenticated user's public fields using
+  `Authorization: Bearer <access-token>`.
