@@ -52,6 +52,12 @@ export function AppHeader() {
           >
             Clients
           </Link>
+          <Link
+            href="/projects"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white hover:text-slate-950"
+          >
+            Projects
+          </Link>
           <button
             className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             type="button"

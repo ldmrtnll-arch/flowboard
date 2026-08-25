@@ -8,21 +8,28 @@ import {
   type AuthenticatedBackendResult,
 } from "@/lib/auth/authenticated-backend";
 import type {
-  ClientErrorResponse,
-  ClientField,
-} from "@/lib/types/client";
+  ProjectErrorResponse,
+  ProjectField,
+} from "@/lib/types/project";
 
 
-const clientFields: ClientField[] = ["name", "email", "phone", "notes"];
+const projectFields: ProjectField[] = [
+  "client",
+  "name",
+  "description",
+  "status",
+  "start_date",
+  "due_date",
+];
 
-export function normalizeClientBackendError(
+export function normalizeProjectBackendError(
   payload: unknown,
   fallbackMessage: string,
-): ClientErrorResponse {
-  const errors: ClientErrorResponse["errors"] = {};
+): ProjectErrorResponse {
+  const errors: ProjectErrorResponse["errors"] = {};
 
   if (typeof payload === "object" && payload !== null) {
-    for (const field of clientFields) {
+    for (const field of projectFields) {
       const value = Reflect.get(payload, field);
       if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
         errors[field] = value;
@@ -36,17 +43,17 @@ export function normalizeClientBackendError(
   };
 }
 
-export function normalizeClientZodError(error: z.ZodError): ClientErrorResponse {
-  const errors: ClientErrorResponse["errors"] = {};
+export function normalizeProjectZodError(error: z.ZodError): ProjectErrorResponse {
+  const errors: ProjectErrorResponse["errors"] = {};
 
   for (const issue of error.issues) {
     const field = issue.path[0];
     if (
       typeof field === "string" &&
-      clientFields.includes(field as ClientField) &&
-      !errors[field as ClientField]
+      projectFields.includes(field as ProjectField) &&
+      !errors[field as ProjectField]
     ) {
-      errors[field as ClientField] = [issue.message];
+      errors[field as ProjectField] = [issue.message];
     }
   }
 
@@ -56,23 +63,19 @@ export function normalizeClientZodError(error: z.ZodError): ClientErrorResponse 
   };
 }
 
-export function clientBackendResponse(result: AuthenticatedBackendResult) {
+export function projectBackendResponse(result: AuthenticatedBackendResult) {
   let payload = result.payload;
   let status = result.status;
 
   if (status === 400) {
-    payload = normalizeClientBackendError(
+    payload = normalizeProjectBackendError(
       payload,
       "Please correct the highlighted fields.",
     );
   } else if (status === 401) {
     payload = { message: "Authentication is required." };
   } else if (status === 404) {
-    payload = { message: "Client not found." };
-  } else if (status === 409) {
-    payload = {
-      message: "This client cannot be deleted because it has projects.",
-    };
+    payload = { message: "Project not found." };
   } else if (status >= 500) {
     status = 502;
     payload = { message: "Unable to connect to the server. Please try again." };
@@ -86,7 +89,7 @@ export function clientBackendResponse(result: AuthenticatedBackendResult) {
   return response;
 }
 
-export function clientUnavailableResponse() {
+export function projectUnavailableResponse() {
   return NextResponse.json(
     { message: "Unable to connect to the server. Please try again." },
     { status: 502 },
