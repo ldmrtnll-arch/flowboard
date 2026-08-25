@@ -132,3 +132,16 @@ GET    /api/projects/<id>/
 PATCH  /api/projects/<id>/
 DELETE /api/projects/<id>/
 ```
+
+## Task management
+
+Tasks belong to projects and remain isolated by user. They support workflow status,
+priority, an optional due date, and an optional assignee limited to the task owner.
+
+```text
+GET    /api/tasks/
+POST   /api/tasks/
+GET    /api/tasks/<id>/
+PATCH  /api/tasks/<id>/
+DELETE /api/tasks/<id>/
+```

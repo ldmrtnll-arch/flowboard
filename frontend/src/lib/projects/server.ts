@@ -76,6 +76,10 @@ export function projectBackendResponse(result: AuthenticatedBackendResult) {
     payload = { message: "Authentication is required." };
   } else if (status === 404) {
     payload = { message: "Project not found." };
+  } else if (status === 409) {
+    payload = {
+      message: "This project cannot be deleted because it has tasks.",
+    };
   } else if (status >= 500) {
     status = 502;
     payload = { message: "Unable to connect to the server. Please try again." };
