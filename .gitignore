@@ -25,6 +25,10 @@ db.sqlite3
 coverage/
 .coverage
 htmlcov/
+playwright-report/
+test-results/
+blob-report/
+*.storage-state.json
 
 # IDE
 .vscode/
