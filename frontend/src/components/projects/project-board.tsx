@@ -88,6 +88,7 @@ function SortableTaskCard({ task, disabled }: { task: Task; disabled: boolean })
   return (
     <article
       ref={setNodeRef}
+      data-testid="kanban-task-card"
       className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm ${isDragging ? "opacity-30" : ""}`}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
@@ -126,6 +127,7 @@ function BoardColumn({
   return (
     <section
       ref={setNodeRef}
+      data-testid={`kanban-column-${status}`}
       className={`flex min-h-[28rem] w-72 shrink-0 flex-col rounded-2xl border p-3 transition ${isOver ? "border-indigo-400 bg-indigo-50" : "border-slate-200 bg-slate-100/80"}`}
       aria-label={`${label} column`}
     >

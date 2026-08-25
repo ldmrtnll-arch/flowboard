@@ -154,3 +154,24 @@ Each project has a board with Backlog, To do, In progress, Review, and Done
 columns. Tasks can be dragged within or across columns, and their integer order is
 persisted. The server applies position and status changes transactionally so board
 invariants do not depend on browser state.
+
+## End-to-end tests
+
+The Playwright suite starts an isolated `flowboard-e2e` Compose project, runs the
+Next.js application on `127.0.0.1:3100`, and removes the E2E containers, network,
+and disposable PostgreSQL volume after the run. It does not use or delete the
+development database volume.
+
+Install the pinned browser once, then run the suite from `frontend/`:
+
+```powershell
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+Use `npm run test:e2e:headed` for a visible Chromium run and
+`npm run test:e2e:report` to open the latest HTML report. Override the default
+ports with `E2E_FRONTEND_PORT` and `E2E_BACKEND_PORT` when necessary. Docker must
+be available; database and JWT secrets are generated at runtime and are not read
+from committed environment files.
