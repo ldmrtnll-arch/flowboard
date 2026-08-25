@@ -14,6 +14,7 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=get_user_model().objects.none(),
         allow_null=True,
         required=False,
+        help_text="Must be the authenticated user or null.",
     )
     assignee_email = serializers.EmailField(
         source="assignee.email",
@@ -48,6 +49,11 @@ class TaskSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+        extra_kwargs = {
+            "position": {
+                "help_text": "Server-managed zero-based position within a Kanban column."
+            }
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,8 +68,17 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskMoveSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=Task.Status.choices)
-    position = serializers.IntegerField(min_value=0)
+    status = serializers.ChoiceField(
+        choices=Task.Status.choices,
+        help_text="Destination Kanban status.",
+    )
+    position = serializers.IntegerField(
+        min_value=0,
+        help_text=(
+            "Zero-based destination position. Values beyond the column size are "
+            "placed at the end."
+        ),
+    )
 
     def validate(self, attrs):
         unexpected = set(self.initial_data) - {"status", "position"}

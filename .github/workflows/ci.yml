@@ -74,6 +74,12 @@ jobs:
       - name: Check migrations
         run: python manage.py makemigrations --check --dry-run
 
+      - name: Generate and validate OpenAPI schema
+        run: python manage.py spectacular --file ../docs/openapi.yaml --validate
+
+      - name: Check OpenAPI schema drift
+        run: git diff --exit-code -- ../docs/openapi.yaml
+
       - name: Run backend tests
         run: pytest
 

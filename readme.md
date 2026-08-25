@@ -157,6 +157,14 @@ columns. Tasks can be dragged within or across columns, and their integer order 
 persisted. The server applies position and status changes transactionally so board
 invariants do not depend on browser state.
 
+## API Documentation
+
+- Swagger UI: [`/api/docs/`](http://localhost:8000/api/docs/)
+- ReDoc: [`/api/redoc/`](http://localhost:8000/api/redoc/)
+- OpenAPI: [`/api/schema/`](http://localhost:8000/api/schema/)
+- Generated spec: [`docs/openapi.yaml`](docs/openapi.yaml)
+- Technical notes: [`docs/api.md`](docs/api.md)
+
 ## End-to-end tests
 
 The Playwright suite starts an isolated `flowboard-e2e` Compose project, runs the

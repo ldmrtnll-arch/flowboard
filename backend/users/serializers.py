@@ -37,3 +37,21 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop("password")
         return User.objects.create_user(password=password, **validated_data)
+
+
+class LoginRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+
+class TokenPairResponseSerializer(serializers.Serializer):
+    access = serializers.CharField(read_only=True, help_text="JWT access token.")
+    refresh = serializers.CharField(read_only=True, help_text="JWT refresh token.")
+
+
+class RefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True, help_text="JWT refresh token.")
+
+
+class AccessTokenResponseSerializer(serializers.Serializer):
+    access = serializers.CharField(read_only=True, help_text="JWT access token.")

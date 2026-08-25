@@ -1,4 +1,5 @@
 from django.http import Http404
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -15,7 +16,9 @@ from .ordering import (
 from .serializers import TaskMoveSerializer, TaskSerializer
 
 
+@extend_schema(tags=["Tasks"])
 class TaskViewSet(ModelViewSet):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -35,6 +38,21 @@ class TaskViewSet(ModelViewSet):
     def perform_destroy(self, instance):
         delete_task_and_normalize(instance)
 
+    @extend_schema(
+        tags=["Kanban"],
+        summary="Move or reorder a task",
+        description=(
+            "Atomically moves or reorders a task. Positions are normalized by the "
+            "server, and values beyond the destination size are placed at the end."
+        ),
+        request=TaskMoveSerializer,
+        responses={
+            200: TaskSerializer,
+            400: OpenApiResponse(description="Invalid status, position, or payload."),
+            401: OpenApiResponse(description="Authentication required."),
+            404: OpenApiResponse(description="Task not found or not accessible."),
+        },
+    )
     @action(detail=True, methods=("post",))
     def move(self, request, pk=None):
         try:

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from clients.models import Client
+from tasks.serializers import TaskSerializer
 
 from .models import Project
 
@@ -24,6 +25,13 @@ class ProjectSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "client_name", "created_at", "updated_at")
+        extra_kwargs = {
+            "due_date": {
+                "help_text": (
+                    "Cannot be earlier than start_date when both dates are provided."
+                )
+            }
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,3 +54,23 @@ class ProjectSerializer(serializers.ModelSerializer):
                 {"due_date": "Due date must be on or after the start date."}
             )
         return attrs
+
+
+class BoardProjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    client = serializers.IntegerField(read_only=True)
+    client_name = serializers.CharField(read_only=True)
+
+
+class BoardColumnsSerializer(serializers.Serializer):
+    backlog = TaskSerializer(many=True, read_only=True)
+    todo = TaskSerializer(many=True, read_only=True)
+    in_progress = TaskSerializer(many=True, read_only=True)
+    review = TaskSerializer(many=True, read_only=True)
+    done = TaskSerializer(many=True, read_only=True)
+
+
+class ProjectBoardSerializer(serializers.Serializer):
+    project = BoardProjectSerializer(read_only=True)
+    columns = BoardColumnsSerializer(read_only=True)
