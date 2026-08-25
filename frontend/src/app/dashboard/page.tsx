@@ -79,7 +79,7 @@ export default function DashboardPage() {
                 Welcome{user.first_name ? `, ${user.first_name}` : ""}.
               </h1>
               <p className="mt-3 text-slate-600">Signed in as {user.email}</p>
-              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
                 <Link href="/clients" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
                   <h2 className="font-semibold text-slate-900">Clients</h2>
                   <p className="mt-2 leading-7 text-slate-600">Organize contact details and relationships.</p>
@@ -87,6 +87,10 @@ export default function DashboardPage() {
                 <Link href="/projects" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
                   <h2 className="font-semibold text-slate-900">Projects</h2>
                   <p className="mt-2 leading-7 text-slate-600">Manage the work connected to each client.</p>
+                </Link>
+                <Link href="/tasks" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
+                  <h2 className="font-semibold text-slate-900">Tasks</h2>
+                  <p className="mt-2 leading-7 text-slate-600">Track actionable work across projects.</p>
                 </Link>
               </div>
             </div>

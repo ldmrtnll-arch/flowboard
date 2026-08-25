@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { readProjectError } from "@/lib/projects/client";
 import { projectsSchema } from "@/lib/projects/schemas";
 import {
   PROJECT_STATUS_LABELS,
@@ -65,7 +66,8 @@ export default function ProjectsPage() {
         return;
       }
       if (!response.ok) {
-        setError("Unable to delete this project. Please try again.");
+        const deleteError = await readProjectError(response);
+        setError(deleteError.message);
         return;
       }
       setProjects((current) => current?.filter((item) => item.id !== project.id) ?? current);
