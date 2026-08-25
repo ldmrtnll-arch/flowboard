@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_spectacular",
     "core",
     "users",
     "clients",
@@ -152,6 +153,40 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "FlowBoard API",
+    "DESCRIPTION": (
+        "FlowBoard is a project and task management API supporting authenticated "
+        "client, project and task workflows with a project-scoped Kanban board."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "ProjectStatusEnum": (
+            ("planning", "Planning"),
+            ("active", "Active"),
+            ("on_hold", "On hold"),
+            ("completed", "Completed"),
+        ),
+        "TaskStatusEnum": (
+            ("backlog", "Backlog"),
+            ("todo", "To do"),
+            ("in_progress", "In progress"),
+            ("review", "Review"),
+            ("done", "Done"),
+        ),
+    },
+    "TAGS": [
+        {"name": "System", "description": "Public operational endpoints."},
+        {"name": "Authentication", "description": "Registration and JWT access."},
+        {"name": "Clients", "description": "Authenticated client management."},
+        {"name": "Projects", "description": "Authenticated project management."},
+        {"name": "Tasks", "description": "Authenticated task management."},
+        {"name": "Kanban", "description": "Project board and task ordering operations."},
+    ],
 }
 
 SIMPLE_JWT = {
