@@ -38,6 +38,7 @@ export type Task = {
   assignee: number | null;
   assignee_email: string | null;
   due_date: string | null;
+  position: number;
   created_at: string;
   updated_at: string;
 };

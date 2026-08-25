@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 
 from clients.models import Client
 from projects.models import Project
+from tasks.models import Task
 
 
 pytestmark = pytest.mark.django_db
@@ -39,6 +40,7 @@ def detail_url(project):
         ("get", PROJECTS_URL, None),
         ("post", PROJECTS_URL, {"client": 1, "name": "Anonymous"}),
         ("get", f"{PROJECTS_URL}1/", None),
+        ("get", f"{PROJECTS_URL}1/board/", None),
     ],
 )
 def test_project_endpoints_require_authentication(method, url, data):
@@ -130,6 +132,85 @@ def test_user_retrieves_own_project_with_client_name():
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"] == project.id
     assert response.json()["client_name"] == "Acme"
+
+
+def test_project_board_returns_five_columns_with_ordered_project_tasks_only():
+    owner = create_user("project.board@example.com")
+    project = Project.objects.create(
+        owner=owner,
+        client=create_client(owner, "Acme"),
+        name="Website",
+    )
+    other_project = Project.objects.create(
+        owner=owner,
+        client=project.client,
+        name="Other",
+    )
+    second = Task.objects.create(
+        owner=owner, project=project, title="Second", position=1
+    )
+    first = Task.objects.create(
+        owner=owner, project=project, title="First", position=0
+    )
+    done = Task.objects.create(
+        owner=owner,
+        project=project,
+        title="Done",
+        status=Task.Status.DONE,
+        position=0,
+    )
+    Task.objects.create(owner=owner, project=other_project, title="Excluded")
+
+    response = authenticated_client(owner).get(f"{detail_url(project)}board/")
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload["project"] == {
+        "id": project.id,
+        "name": "Website",
+        "client": project.client_id,
+        "client_name": "Acme",
+    }
+    assert list(payload["columns"]) == [
+        "backlog", "todo", "in_progress", "review", "done"
+    ]
+    assert [item["id"] for item in payload["columns"]["backlog"]] == [
+        first.id, second.id
+    ]
+    assert [item["id"] for item in payload["columns"]["done"]] == [done.id]
+    assert payload["columns"]["todo"] == []
+    assert payload["columns"]["in_progress"] == []
+    assert payload["columns"]["review"] == []
+
+
+def test_empty_project_board_returns_all_empty_columns():
+    owner = create_user("project.board.empty@example.com")
+    project = Project.objects.create(
+        owner=owner,
+        client=create_client(owner),
+        name="Empty",
+    )
+    response = authenticated_client(owner).get(f"{detail_url(project)}board/")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["columns"] == {
+        "backlog": [],
+        "todo": [],
+        "in_progress": [],
+        "review": [],
+        "done": [],
+    }
+
+
+def test_user_cannot_access_another_users_project_board():
+    user_a = create_user("project.board.foreign.a@example.com")
+    user_b = create_user("project.board.foreign.b@example.com")
+    project_b = Project.objects.create(
+        owner=user_b,
+        client=create_client(user_b),
+        name="Private board",
+    )
+    response = authenticated_client(user_a).get(f"{detail_url(project_b)}board/")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_user_cannot_update_another_users_project():

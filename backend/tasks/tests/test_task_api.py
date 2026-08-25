@@ -34,12 +34,17 @@ def detail_url(task):
     return f"{TASKS_URL}{task.id}/"
 
 
+def move_url(task):
+    return f"{detail_url(task)}move/"
+
+
 @pytest.mark.parametrize(
     ("method", "url", "data"),
     [
         ("get", TASKS_URL, None),
         ("post", TASKS_URL, {"project": 1, "title": "Anonymous"}),
         ("get", f"{TASKS_URL}1/", None),
+        ("post", f"{TASKS_URL}1/move/", {"status": "done", "position": 0}),
     ],
 )
 def test_task_endpoints_require_authentication(method, url, data):
@@ -60,7 +65,7 @@ def test_user_creates_task_for_own_project_with_defaults():
     assert set(response.json()) == {
         "id", "project", "project_name", "client_name", "title",
         "description", "status", "priority", "assignee", "assignee_email",
-        "due_date", "created_at", "updated_at",
+        "due_date", "position", "created_at", "updated_at",
     }
     task = Task.objects.get(id=response.json()["id"])
     assert task.owner == owner
@@ -68,6 +73,44 @@ def test_user_creates_task_for_own_project_with_defaults():
     assert task.status == Task.Status.BACKLOG
     assert task.priority == Task.Priority.MEDIUM
     assert task.assignee is None
+    assert task.position == 0
+
+
+def test_create_assigns_sequential_positions_and_ignores_client_position():
+    owner = create_user("task.create.positions@example.com")
+    project = create_project(owner)
+    api_client = authenticated_client(owner)
+
+    responses = [
+        api_client.post(
+            TASKS_URL,
+            {"project": project.id, "title": title, "position": 999},
+        )
+        for title in ("A", "B", "C")
+    ]
+
+    assert [response.status_code for response in responses] == [201, 201, 201]
+    assert [response.json()["position"] for response in responses] == [0, 1, 2]
+    assert list(
+        Task.objects.filter(project=project).values_list("position", flat=True)
+    ) == [0, 1, 2]
+
+
+def test_create_positions_are_independent_per_status():
+    owner = create_user("task.create.status.positions@example.com")
+    project = create_project(owner)
+    api_client = authenticated_client(owner)
+
+    backlog_a = api_client.post(TASKS_URL, {"project": project.id, "title": "A"})
+    todo_b = api_client.post(
+        TASKS_URL,
+        {"project": project.id, "title": "B", "status": Task.Status.TODO},
+    )
+    backlog_c = api_client.post(TASKS_URL, {"project": project.id, "title": "C"})
+
+    assert backlog_a.json()["position"] == 0
+    assert todo_b.json()["position"] == 0
+    assert backlog_c.json()["position"] == 1
 
 
 def test_user_creates_task_assigned_to_self():
@@ -194,6 +237,160 @@ def test_user_updates_own_task_and_valid_status_transitions():
     assert str(task.due_date) == "2026-09-15"
 
 
+def test_patch_status_appends_to_destination_and_normalizes_source():
+    owner = create_user("task.patch.status.position@example.com")
+    project = create_project(owner)
+    api_client = authenticated_client(owner)
+    source_a = Task.objects.create(
+        owner=owner, project=project, title="Source A", position=0
+    )
+    moving = Task.objects.create(
+        owner=owner, project=project, title="Moving", position=4
+    )
+    done = Task.objects.create(
+        owner=owner,
+        project=project,
+        title="Done",
+        status=Task.Status.DONE,
+        position=7,
+    )
+
+    response = api_client.patch(detail_url(moving), {"status": Task.Status.DONE})
+
+    assert response.status_code == status.HTTP_200_OK
+    moving.refresh_from_db()
+    source_a.refresh_from_db()
+    done.refresh_from_db()
+    assert (source_a.position, done.position) == (0, 0)
+    assert (moving.status, moving.position) == (Task.Status.DONE, 1)
+
+
+def test_common_patch_cannot_set_position_arbitrarily():
+    owner = create_user("task.patch.position.readonly@example.com")
+    task = Task.objects.create(
+        owner=owner, project=create_project(owner), title="Fixed", position=2
+    )
+    response = authenticated_client(owner).patch(detail_url(task), {"position": 999})
+    assert response.status_code == status.HTTP_200_OK
+    task.refresh_from_db()
+    assert task.position == 2
+
+
+def test_move_reorders_three_tasks_within_same_column():
+    owner = create_user("task.move.same@example.com")
+    project = create_project(owner)
+    tasks = [
+        Task.objects.create(owner=owner, project=project, title=title, position=index)
+        for index, title in enumerate(("A", "B", "C"))
+    ]
+
+    response = authenticated_client(owner).post(
+        move_url(tasks[2]), {"status": Task.Status.BACKLOG, "position": 0}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["position"] == 0
+    assert list(
+        Task.objects.filter(project=project, status=Task.Status.BACKLOG)
+        .order_by("position", "id")
+        .values_list("title", "position")
+    ) == [("C", 0), ("A", 1), ("B", 2)]
+
+
+def test_move_cross_column_normalizes_source_and_destination():
+    owner = create_user("task.move.cross@example.com")
+    project = create_project(owner)
+    backlog_a = Task.objects.create(owner=owner, project=project, title="A", position=0)
+    backlog_b = Task.objects.create(owner=owner, project=project, title="B", position=3)
+    Task.objects.create(
+        owner=owner, project=project, title="C", status=Task.Status.TODO, position=0
+    )
+    Task.objects.create(
+        owner=owner, project=project, title="D", status=Task.Status.TODO, position=5
+    )
+
+    response = authenticated_client(owner).post(
+        move_url(backlog_b), {"status": Task.Status.TODO, "position": 1}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert list(
+        Task.objects.filter(project=project, status=Task.Status.BACKLOG)
+        .order_by("position")
+        .values_list("title", "position")
+    ) == [(backlog_a.title, 0)]
+    assert list(
+        Task.objects.filter(project=project, status=Task.Status.TODO)
+        .order_by("position")
+        .values_list("title", "position")
+    ) == [("C", 0), ("B", 1), ("D", 2)]
+
+
+def test_move_to_empty_column_uses_zero_position():
+    owner = create_user("task.move.empty@example.com")
+    task = Task.objects.create(owner=owner, project=create_project(owner), title="Move")
+    response = authenticated_client(owner).post(
+        move_url(task), {"status": Task.Status.REVIEW, "position": 8}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    task.refresh_from_db()
+    assert (task.status, task.position) == (Task.Status.REVIEW, 0)
+
+
+def test_move_position_above_range_is_clamped_to_column_end():
+    owner = create_user("task.move.clamp@example.com")
+    project = create_project(owner)
+    moving = Task.objects.create(owner=owner, project=project, title="Moving")
+    Task.objects.create(
+        owner=owner, project=project, title="Done A", status=Task.Status.DONE, position=0
+    )
+    Task.objects.create(
+        owner=owner, project=project, title="Done B", status=Task.Status.DONE, position=1
+    )
+    response = authenticated_client(owner).post(
+        move_url(moving), {"status": Task.Status.DONE, "position": 999}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    moving.refresh_from_db()
+    assert moving.position == 2
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"status": "invalid", "position": 0},
+        {"status": Task.Status.DONE, "position": -1},
+        {"status": Task.Status.DONE, "position": "invalid"},
+        {"status": Task.Status.DONE, "position": 0, "project": 999},
+    ],
+)
+def test_invalid_move_returns_400_without_partial_changes(payload):
+    owner = create_user(f"task.move.invalid.{len(str(payload))}@example.com")
+    project = create_project(owner)
+    first = Task.objects.create(owner=owner, project=project, title="First", position=0)
+    second = Task.objects.create(owner=owner, project=project, title="Second", position=1)
+    response = authenticated_client(owner).post(move_url(second), payload, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    first.refresh_from_db()
+    second.refresh_from_db()
+    assert (first.status, first.position) == (Task.Status.BACKLOG, 0)
+    assert (second.status, second.position) == (Task.Status.BACKLOG, 1)
+
+
+def test_user_cannot_move_another_users_task():
+    user_a = create_user("task.move.foreign.a@example.com")
+    user_b = create_user("task.move.foreign.b@example.com")
+    task_b = Task.objects.create(
+        owner=user_b, project=create_project(user_b), title="Private"
+    )
+    response = authenticated_client(user_a).post(
+        move_url(task_b), {"status": Task.Status.DONE, "position": 0}
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    task_b.refresh_from_db()
+    assert (task_b.status, task_b.position) == (Task.Status.BACKLOG, 0)
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [("status", "invalid"), ("priority", "critical")],
@@ -214,13 +411,25 @@ def test_user_moves_task_to_another_own_project():
     owner = create_user("task.project.move@example.com")
     project_a = create_project(owner, "A1")
     project_b = create_project(owner, "A2")
-    task = Task.objects.create(owner=owner, project=project_a, title="Move")
+    Task.objects.create(owner=owner, project=project_a, title="Stay", position=0)
+    task = Task.objects.create(
+        owner=owner, project=project_a, title="Move", position=4
+    )
+    destination_task = Task.objects.create(
+        owner=owner, project=project_b, title="Already there", position=7
+    )
     response = authenticated_client(owner).patch(
         detail_url(task), {"project": project_b.id}
     )
     assert response.status_code == status.HTTP_200_OK
     task.refresh_from_db()
+    destination_task.refresh_from_db()
     assert task.project == project_b
+    assert task.position == 1
+    assert destination_task.position == 0
+    assert list(
+        Task.objects.filter(project=project_a).values_list("position", flat=True)
+    ) == [0]
 
 
 def test_user_cannot_move_task_to_foreign_project():

@@ -11,6 +11,7 @@ class TaskAdmin(admin.ModelAdmin):
         "owner",
         "assignee",
         "status",
+        "position",
         "priority",
         "due_date",
     )

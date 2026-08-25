@@ -44,6 +44,7 @@ export const taskSchema = z.object({
   assignee: z.number().int().positive().nullable(),
   assignee_email: z.string().nullable(),
   due_date: z.string().nullable(),
+  position: z.number().int().nonnegative(),
   created_at: z.string(),
   updated_at: z.string(),
 });
