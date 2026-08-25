@@ -1,7 +1,5 @@
 # FlowBoard
 
-[![CI](https://github.com/ldmrtnll-arch/flowboard/actions/workflows/ci.yml/badge.svg)](https://github.com/ldmrtnll-arch/flowboard/actions/workflows/ci.yml)
-
 FlowBoard is a full-stack project management application built as a software development portfolio project.
 
 The platform allows users to manage clients, projects and tasks through a modern web interface and REST API.
@@ -177,12 +175,3 @@ Use `npm run test:e2e:headed` for a visible Chromium run and
 ports with `E2E_FRONTEND_PORT` and `E2E_BACKEND_PORT` when necessary. Docker must
 be available; database and JWT secrets are generated at runtime and are not read
 from committed environment files.
-
-## Continuous Integration
-
-Pull requests targeting `main` and pushes to `main` run the GitHub Actions CI
-workflow. Its Backend check uses PostgreSQL and runs Django validation plus the
-complete Pytest suite. The Frontend check runs ESLint, TypeScript, and the Next.js
-production build. After both checks pass, the End-to-End check runs the isolated
-Playwright Chromium suite against the complete Next.js BFF, Django, and PostgreSQL
-stack.
