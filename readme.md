@@ -118,3 +118,17 @@ GET    /api/clients/<id>/
 PATCH  /api/clients/<id>/
 DELETE /api/clients/<id>/
 ```
+
+## Project management
+
+Every project belongs to an authenticated user and one of that user's clients.
+Projects support basic planning statuses and full CRUD while remaining isolated by
+user. Clients with projects are protected from deletion.
+
+```text
+GET    /api/projects/
+POST   /api/projects/
+GET    /api/projects/<id>/
+PATCH  /api/projects/<id>/
+DELETE /api/projects/<id>/
+```

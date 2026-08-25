@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { readClientError } from "@/lib/clients/client";
 import { clientsSchema } from "@/lib/clients/schemas";
 import type { Client } from "@/lib/types/client";
 
@@ -71,7 +72,8 @@ export default function ClientsPage() {
         return;
       }
       if (!response.ok) {
-        setError("Unable to delete this client. Please try again.");
+        const deleteError = await readClientError(response);
+        setError(deleteError.message);
         return;
       }
 

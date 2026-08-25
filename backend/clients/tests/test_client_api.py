@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from clients.models import Client
+from projects.models import Project
 
 
 pytestmark = pytest.mark.django_db
@@ -146,6 +147,21 @@ def test_user_can_delete_own_client():
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not Client.objects.filter(id=client.id).exists()
+
+
+def test_client_with_project_cannot_be_deleted():
+    owner = create_user("protected.delete@example.com")
+    client = Client.objects.create(owner=owner, name="Protected")
+    project = Project.objects.create(owner=owner, client=client, name="Active project")
+
+    response = authenticated_client(owner).delete(detail_url(client))
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.json() == {
+        "detail": "Client cannot be deleted while it has projects."
+    }
+    assert Client.objects.filter(id=client.id).exists()
+    assert Project.objects.filter(id=project.id).exists()
 
 
 @pytest.mark.parametrize("data", [{}, {"name": ""}, {"name": "   "}])

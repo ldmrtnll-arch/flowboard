@@ -79,16 +79,14 @@ export default function DashboardPage() {
                 Welcome{user.first_name ? `, ${user.first_name}` : ""}.
               </h1>
               <p className="mt-3 text-slate-600">Signed in as {user.email}</p>
-              <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white p-8">
-                <h2 className="font-semibold text-slate-900">Start with your clients</h2>
-                <p className="mt-2 leading-7 text-slate-600">
-                  Keep contact details organized and available for the work ahead.
-                </p>
-                <Link
-                  href="/clients"
-                  className="mt-5 inline-block rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-500"
-                >
-                  View clients
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                <Link href="/clients" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
+                  <h2 className="font-semibold text-slate-900">Clients</h2>
+                  <p className="mt-2 leading-7 text-slate-600">Organize contact details and relationships.</p>
+                </Link>
+                <Link href="/projects" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
+                  <h2 className="font-semibold text-slate-900">Projects</h2>
+                  <p className="mt-2 leading-7 text-slate-600">Manage the work connected to each client.</p>
                 </Link>
               </div>
             </div>
