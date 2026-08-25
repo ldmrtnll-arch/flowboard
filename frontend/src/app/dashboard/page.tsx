@@ -86,7 +86,7 @@ export default function DashboardPage() {
                 </Link>
                 <Link href="/projects" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
                   <h2 className="font-semibold text-slate-900">Projects</h2>
-                  <p className="mt-2 leading-7 text-slate-600">Manage the work connected to each client.</p>
+                  <p className="mt-2 leading-7 text-slate-600">Manage client work through project Kanban boards.</p>
                 </Link>
                 <Link href="/tasks" className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300">
                   <h2 className="font-semibold text-slate-900">Tasks</h2>

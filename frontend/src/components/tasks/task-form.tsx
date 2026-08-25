@@ -29,6 +29,7 @@ type TaskFormProps = {
   mode: "create" | "edit";
   taskId?: number;
   initialValues?: TaskFormValues;
+  initialProjectId?: number;
 };
 
 const emptyValues: TaskFormValues = {
@@ -44,7 +45,7 @@ const emptyValues: TaskFormValues = {
 const inputClassName =
   "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
 
-export function TaskForm({ mode, taskId, initialValues }: TaskFormProps) {
+export function TaskForm({ mode, taskId, initialValues, initialProjectId }: TaskFormProps) {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -53,6 +54,7 @@ export function TaskForm({ mode, taskId, initialValues }: TaskFormProps) {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormInput, unknown, TaskInput>({
     resolver: zodResolver(taskInputSchema),
@@ -84,6 +86,13 @@ export function TaskForm({ mode, taskId, initialValues }: TaskFormProps) {
         }
         setProjects(projectsResult.data);
         setUser(userResult.data);
+        if (
+          mode === "create" &&
+          initialProjectId &&
+          projectsResult.data.some((project) => project.id === initialProjectId)
+        ) {
+          setValue("project", initialProjectId);
+        }
       } catch (requestError) {
         if (requestError instanceof Error && requestError.name === "AbortError") return;
         setPrerequisiteError("Unable to connect to the server. Please try again.");
@@ -91,7 +100,7 @@ export function TaskForm({ mode, taskId, initialValues }: TaskFormProps) {
     }
     void loadPrerequisites();
     return () => controller.abort();
-  }, [router]);
+  }, [initialProjectId, mode, router, setValue]);
 
   async function onSubmit(values: TaskInput) {
     const url = mode === "create" ? "/api/tasks" : `/api/tasks/${taskId}`;

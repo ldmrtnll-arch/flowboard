@@ -121,7 +121,8 @@ export default function ProjectsPage() {
                         </p>
                       ) : null}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Link href={`/projects/${project.id}/board`} className="rounded-lg bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100">Board</Link>
                       <Link href={`/projects/${project.id}/edit`} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Edit</Link>
                       <button
                         className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"

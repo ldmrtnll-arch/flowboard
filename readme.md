@@ -131,6 +131,7 @@ POST   /api/projects/
 GET    /api/projects/<id>/
 PATCH  /api/projects/<id>/
 DELETE /api/projects/<id>/
+GET    /api/projects/<id>/board/
 ```
 
 ## Task management
@@ -144,4 +145,12 @@ POST   /api/tasks/
 GET    /api/tasks/<id>/
 PATCH  /api/tasks/<id>/
 DELETE /api/tasks/<id>/
+POST   /api/tasks/<id>/move/
 ```
+
+## Project Kanban
+
+Each project has a board with Backlog, To do, In progress, Review, and Done
+columns. Tasks can be dragged within or across columns, and their integer order is
+persisted. The server applies position and status changes transactionally so board
+invariants do not depend on browser state.

@@ -35,9 +35,24 @@ def test_task_has_project_owner_defaults_optional_fields_and_string_value():
     assert task.description == ""
     assert task.assignee is None
     assert task.due_date is None
+    assert task.position == 0
     assert task.created_at is not None
     assert task.updated_at is not None
     assert str(task) == "First task"
+    assert Task._meta.ordering == ("status", "position", "id")
+
+
+def test_task_queryset_ordering_uses_position_then_id_within_status():
+    owner = create_user("task.ordering@example.com")
+    project = create_project(owner)
+    second = Task.objects.create(
+        owner=owner, project=project, title="Second", position=1
+    )
+    first = Task.objects.create(
+        owner=owner, project=project, title="First", position=0
+    )
+
+    assert list(Task.objects.values_list("id", flat=True)) == [first.id, second.id]
 
 
 def test_model_rejects_project_owned_by_another_user():

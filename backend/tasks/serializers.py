@@ -35,6 +35,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "assignee",
             "assignee_email",
             "due_date",
+            "position",
             "created_at",
             "updated_at",
         )
@@ -43,6 +44,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "project_name",
             "client_name",
             "assignee_email",
+            "position",
             "created_at",
             "updated_at",
         )
@@ -57,3 +59,16 @@ class TaskSerializer(serializers.ModelSerializer):
             self.fields["assignee"].queryset = get_user_model().objects.filter(
                 id=request.user.id
             )
+
+
+class TaskMoveSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Task.Status.choices)
+    position = serializers.IntegerField(min_value=0)
+
+    def validate(self, attrs):
+        unexpected = set(self.initial_data) - {"status", "position"}
+        if unexpected:
+            raise serializers.ValidationError(
+                {field: "This field is not allowed." for field in sorted(unexpected)}
+            )
+        return attrs
