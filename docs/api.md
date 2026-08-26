@@ -10,7 +10,17 @@ The OpenAPI document describes the Django backend itself. It does not describe t
 
 The API uses short-lived JWT access tokens and refresh tokens. Protected Django endpoints expect `Authorization: Bearer <access-token>`.
 
-The application UI keeps both tokens in HttpOnly cookies and reaches Django through the Next.js BFF. For development and Swagger testing only, obtain an access token from `POST /api/auth/login/`, select **Authorize**, and enter the token. Register, login, token refresh, health, and documentation endpoints are public; business resources require authentication.
+The application UI keeps both tokens in HttpOnly cookies and reaches Django through the Next.js BFF. For development and Swagger testing only, obtain an access token from `POST /api/auth/login/`, select **Authorize**, and enter the token. Register, login, token refresh, health, readiness, and documentation endpoints are public; business resources require authentication.
+
+## Operational endpoints
+
+`GET /api/health/` is a lightweight liveness probe. It returns `200` with
+`{"status":"ok"}` without checking dependencies.
+
+`GET /api/ready/` is the readiness probe. It executes `SELECT 1` against PostgreSQL
+and returns `200` with `{"status":"ready"}` when the application can serve traffic,
+or `503` with `{"status":"unavailable"}` when the database is unavailable. The
+failure response intentionally exposes no database details.
 
 ## API documentation
 

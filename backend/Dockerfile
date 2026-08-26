@@ -13,10 +13,14 @@ COPY . .
 
 RUN addgroup --system app \
     && adduser --system --ingroup app app \
+    && sed -i 's/\r$//' /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh \
     && chown -R app:app /app
 
 USER app
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+CMD ["gunicorn", "config.wsgi:application", "--config", "gunicorn.conf.py"]

@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 SCHEMA_URL = "/api/schema/"
 PUBLIC_OPERATIONS = (
     ("/api/health/", "get"),
+    ("/api/ready/", "get"),
     ("/api/auth/register/", "post"),
     ("/api/auth/login/", "post"),
     ("/api/auth/refresh/", "post"),
@@ -62,6 +63,7 @@ def test_schema_exposes_expected_metadata_tags_and_paths():
     ]
     assert {
         "/api/health/",
+        "/api/ready/",
         "/api/auth/register/",
         "/api/auth/login/",
         "/api/auth/refresh/",

@@ -14,6 +14,7 @@ function readPort(name: "E2E_FRONTEND_PORT" | "E2E_BACKEND_PORT", fallback: numb
 }
 
 process.env.E2E_POSTGRES_PASSWORD ??= randomBytes(32).toString("hex");
+process.env.E2E_DJANGO_SECRET_KEY ??= randomBytes(48).toString("base64url");
 process.env.E2E_JWT_SIGNING_KEY ??= randomBytes(48).toString("base64url");
 const noProxy = new Set(
   `${process.env.NO_PROXY ?? ""},${process.env.no_proxy ?? ""}`

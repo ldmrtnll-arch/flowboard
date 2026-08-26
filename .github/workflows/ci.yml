@@ -60,8 +60,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
-      - name: Generate runtime JWT key
-        run: python -c "import os, secrets; open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8').write('JWT_SIGNING_KEY=' + secrets.token_urlsafe(48) + '\n')"
+      - name: Generate independent runtime secrets
+        run: >-
+          python -c "import os, secrets; values = {'DJANGO_SECRET_KEY': secrets.token_urlsafe(64), 'JWT_SIGNING_KEY': secrets.token_urlsafe(48)}; open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8').write(''.join(f'{name}={value}\n' for name, value in values.items()))"
 
       - name: Check dependencies
         run: |
@@ -70,6 +71,19 @@ jobs:
 
       - name: Run Django checks
         run: python manage.py check
+
+      - name: Production deployment check
+        env:
+          DJANGO_DEBUG: "false"
+          DJANGO_ALLOWED_HOSTS: flowboard.example.com
+          DJANGO_SECURE_SSL_REDIRECT: "true"
+          DJANGO_SESSION_COOKIE_SECURE: "true"
+          DJANGO_CSRF_COOKIE_SECURE: "true"
+          DJANGO_SECURE_HSTS_SECONDS: "31536000"
+          DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS: "true"
+          DJANGO_SECURE_HSTS_PRELOAD: "true"
+          DJANGO_TRUST_PROXY_HEADERS: "true"
+        run: python manage.py check --deploy
 
       - name: Check migrations
         run: python manage.py makemigrations --check --dry-run

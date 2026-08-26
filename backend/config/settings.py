@@ -31,20 +31,45 @@ def required_env(name: str) -> str:
     return value
 
 
+def boolean_env(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized == "true":
+        return True
+    if normalized == "false":
+        return False
+    raise ImproperlyConfigured(f"{name} must be either true or false")
+
+
+def integer_env(name: str, default: int = 0) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"{name} must be an integer") from exc
+    if parsed < 0:
+        raise ImproperlyConfigured(f"{name} must not be negative")
+    return parsed
+
+
+def list_env(name: str, default: str = "") -> list[str]:
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# Local development only. Production configuration will provide its own secret.
-SECRET_KEY = "django-insecure-flowboard-local-development-only"
+SECRET_KEY = required_env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = boolean_env("DJANGO_DEBUG", default=False)
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = list_env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+CSRF_TRUSTED_ORIGINS = list_env("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 
 # Application definition
@@ -67,6 +92,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -144,7 +170,42 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
+}
+
+# Deployment security is intentionally controlled by explicit environment values.
+SECURE_SSL_REDIRECT = boolean_env("DJANGO_SECURE_SSL_REDIRECT")
+SESSION_COOKIE_SECURE = boolean_env("DJANGO_SESSION_COOKIE_SECURE")
+CSRF_COOKIE_SECURE = boolean_env("DJANGO_CSRF_COOKIE_SECURE")
+SECURE_HSTS_SECONDS = integer_env("DJANGO_SECURE_HSTS_SECONDS")
+SECURE_HSTS_INCLUDE_SUBDOMAINS = boolean_env(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS"
+)
+SECURE_HSTS_PRELOAD = boolean_env("DJANGO_SECURE_HSTS_PRELOAD")
+
+if boolean_env("DJANGO_TRUST_PROXY_HEADERS"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {
+        "handlers": ["console"],
+        "level": os.getenv("DJANGO_LOG_LEVEL", "INFO").upper(),
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
