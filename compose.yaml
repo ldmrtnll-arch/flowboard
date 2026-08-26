@@ -23,6 +23,7 @@ services:
     env_file:
       - .env
     environment:
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,backend
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
     depends_on:
@@ -40,6 +41,29 @@ services:
         - python
         - -c
         - import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5).read()
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      AUTH_COOKIE_SECURE: "false"
+      BACKEND_API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://localhost:3000/').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))
       interval: 5s
       timeout: 5s
       retries: 10

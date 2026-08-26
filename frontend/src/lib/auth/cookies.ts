@@ -10,10 +10,26 @@ import {
 } from "@/lib/auth/constants";
 
 
+function secureCookiesEnabled(): boolean {
+  const configured = process.env.AUTH_COOKIE_SECURE;
+
+  if (configured === undefined) {
+    return process.env.NODE_ENV === "production";
+  }
+  if (configured === "true") {
+    return true;
+  }
+  if (configured === "false") {
+    return false;
+  }
+
+  throw new Error("AUTH_COOKIE_SECURE must be either true or false");
+}
+
 const cookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: secureCookiesEnabled(),
   path: "/",
 };
 

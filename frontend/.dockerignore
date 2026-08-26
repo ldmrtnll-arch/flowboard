@@ -1,0 +1,13 @@
+node_modules
+.next
+e2e
+playwright-report
+test-results
+blob-report
+.git
+.gitignore
+.env
+.env.local
+.env.*
+npm-debug.log*
+Dockerfile*
