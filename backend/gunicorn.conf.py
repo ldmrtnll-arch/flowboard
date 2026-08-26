@@ -8,7 +8,8 @@ def positive_integer_env(name: str, default: int) -> int:
     return value
 
 
-bind = "0.0.0.0:8000"
+port = positive_integer_env("PORT", 8000)
+bind = f"0.0.0.0:{port}"
 workers = positive_integer_env("WEB_CONCURRENCY", 2)
 threads = positive_integer_env("GUNICORN_THREADS", 2)
 timeout = positive_integer_env("GUNICORN_TIMEOUT", 60)

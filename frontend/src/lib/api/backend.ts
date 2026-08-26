@@ -11,12 +11,29 @@ function getBackendApiUrl(): string {
   return value.replace(/\/$/, "");
 }
 
+function getBackendForwardedProto(): "http" | "https" | undefined {
+  const value = process.env.BACKEND_FORWARDED_PROTO;
+
+  if (value === undefined || value === "http" || value === "https") {
+    return value;
+  }
+
+  throw new Error("BACKEND_FORWARDED_PROTO must be either http or https");
+}
+
 export async function backendRequest(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  const forwardedProto = getBackendForwardedProto();
+  if (forwardedProto) {
+    headers.set("X-Forwarded-Proto", forwardedProto);
+  }
+
   return fetch(`${getBackendApiUrl()}${path}`, {
     ...init,
+    headers,
     cache: "no-store",
   });
 }
