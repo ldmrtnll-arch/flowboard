@@ -48,20 +48,45 @@ development value before using either workflow:
 Copy-Item .env.example .env
 ```
 
-### Docker stack
+### Full Stack Docker quick start
 
-Start PostgreSQL and the Django backend, including migrations:
+The normal Compose stack builds and runs PostgreSQL, Django, and the production-built
+Next.js frontend. After copying `.env.example` to `.env`, replace the placeholder
+database password and JWT signing key with independent local development values,
+then start the complete stack:
 
 ```powershell
+Copy-Item .env.example .env
 docker compose up --build
 ```
 
-The API is available at [http://localhost:8000/api/health/](http://localhost:8000/api/health/)
-by default. Stop and remove the containers without deleting database data with:
+The frontend is available at [http://localhost:3000](http://localhost:3000) by
+default. `FRONTEND_PORT` can change the host port. The backend remains available at
+the host port selected by `BACKEND_PORT` (default `8000`), including Swagger at
+[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/).
+
+Inspect service logs with:
+
+```powershell
+docker compose logs -f frontend
+docker compose logs -f backend
+```
+
+Stop and remove the containers with:
 
 ```powershell
 docker compose down
 ```
+
+PostgreSQL data is stored in the named `postgres_data` volume, which is preserved
+by `docker compose down`. The Compose stack is production-like for the frontend,
+but it is still intended for local development because Django uses its development
+server.
+
+The Compose frontend receives `BACKEND_API_URL=http://backend:8000` at runtime and
+uses that internal address only from server-side BFF code. Browser requests remain
+same-origin. Local HTTP also sets `AUTH_COOKIE_SECURE=false`; HTTPS deployments must
+use the secure default or explicitly set it to `true`.
 
 ### Local backend with PostgreSQL in Docker
 
@@ -89,7 +114,7 @@ To run the web authentication flow locally:
 ```powershell
 Copy-Item frontend/.env.example frontend/.env.local
 # Set BACKEND_API_URL in frontend/.env.local for the local Django address.
-docker compose up --build -d
+docker compose up --build -d db backend
 cd frontend
 npm run dev
 ```
