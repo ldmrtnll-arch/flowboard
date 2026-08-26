@@ -15,6 +15,7 @@ venv/
 env/
 .pytest_cache/
 db.sqlite3
+backend/staticfiles/
 
 # Environment variables
 .env

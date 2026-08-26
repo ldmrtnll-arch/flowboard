@@ -50,9 +50,9 @@ Copy-Item .env.example .env
 
 ### Full Stack Docker quick start
 
-The normal Compose stack builds and runs PostgreSQL, Django, and the production-built
+The normal Compose stack builds and runs PostgreSQL, Django on Gunicorn, and the production-built
 Next.js frontend. After copying `.env.example` to `.env`, replace the placeholder
-database password and JWT signing key with independent local development values,
+database password, Django secret, and JWT signing key with independent local development values,
 then start the complete stack:
 
 ```powershell
@@ -79,9 +79,10 @@ docker compose down
 ```
 
 PostgreSQL data is stored in the named `postgres_data` volume, which is preserved
-by `docker compose down`. The Compose stack is production-like for the frontend,
-but it is still intended for local development because Django uses its development
-server.
+by `docker compose down`. Django uses the same Gunicorn and WhiteNoise runtime as a
+production deployment, while the environment template keeps HTTP-friendly local
+security defaults. See the [deployment guide](docs/deployment.md) before publishing
+the stack.
 
 The Compose frontend receives `BACKEND_API_URL=http://backend:8000` at runtime and
 uses that internal address only from server-side BFF code. Browser requests remain
@@ -208,7 +209,7 @@ npm run test:e2e
 Use `npm run test:e2e:headed` for a visible Chromium run and
 `npm run test:e2e:report` to open the latest HTML report. Override the default
 ports with `E2E_FRONTEND_PORT` and `E2E_BACKEND_PORT` when necessary. Docker must
-be available; database and JWT secrets are generated at runtime and are not read
+be available; database, Django, and JWT secrets are generated at runtime and are not read
 from committed environment files.
 
 ## Continuous Integration

@@ -462,6 +462,25 @@ paths:
           description: Authentication required.
         '404':
           description: Project not found or not accessible.
+  /api/ready/:
+    get:
+      operationId: ready_retrieve
+      summary: Public readiness check
+      tags:
+      - System
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+          description: ''
   /api/tasks/:
     get:
       operationId: tasks_list
@@ -964,6 +983,14 @@ components:
         * `active` - Active
         * `on_hold` - On hold
         * `completed` - Completed
+    Readiness:
+      type: object
+      properties:
+        status:
+          type: string
+          readOnly: true
+      required:
+      - status
     RefreshRequest:
       type: object
       properties:
