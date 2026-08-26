@@ -39,6 +39,13 @@ The platform allows users to manage clients, projects and tasks through a modern
 
 🚧 Under development
 
+## Live deployment
+
+The repository is prepared for Railway deployment, but no production URL is
+published yet. Follow the [Railway deployment guide](docs/deployment.md#railway-deployment)
+to provision the production services without exposing secrets or the private
+backend connection.
+
 ## Local development
 
 Copy the environment template and replace the database password with a local
