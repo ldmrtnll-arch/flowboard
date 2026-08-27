@@ -1,5 +1,18 @@
 # Deployment
 
+## Production status
+
+FlowBoard is deployed and active on Railway in **US East Metal (Virginia)**. The
+current public endpoints are:
+
+- Frontend: <https://frontend-production-29dc.up.railway.app>
+- Backend API: <https://backend-production-a62ad.up.railway.app>
+- Swagger UI: <https://backend-production-a62ad.up.railway.app/api/docs/>
+- ReDoc: <https://backend-production-a62ad.up.railway.app/api/redoc/>
+
+Frontend and backend use Railway's native GitHub integration with **Wait for CI**
+enabled. Internal service domains and identifiers are intentionally not documented.
+
 ## Runtime architecture
 
 Production traffic follows `Internet -> HTTPS platform/reverse proxy -> Next.js ->
@@ -83,7 +96,7 @@ serving with a partially prepared runtime.
 
 ## Railway deployment
 
-This section prepares a first production deployment through the Railway Dashboard.
+This section documents the production deployment and its repeatable setup through the Railway Dashboard.
 Do not add `railway.json`, `railway.toml`, a Railway token, or a deploy job to this
 repository. Railway owns CD through its native GitHub integration; GitHub Actions
 continues to own CI.
@@ -108,11 +121,9 @@ and these services in the same region:
 | `backend` | `ldmrtnll-arch/flowboard`, branch `main` | `/backend` | Existing `Dockerfile` |
 | `frontend` | `ldmrtnll-arch/flowboard`, branch `main` | `/frontend` | Existing `Dockerfile` |
 
-The current region list does not include Brazil. For a Brazil-based portfolio,
-start with **US East Metal (Virginia)** when the selected plan offers it, and place
-all three services there. Use one replica for each application service. Leave Watch
-Paths unset for the first deployment so a shared or root-level change cannot be
-skipped accidentally.
+All three production services run in **US East Metal (Virginia)**. Use one replica
+for each application service. Leave Watch Paths unset so a shared or root-level
+change cannot be skipped accidentally.
 
 ### PostgreSQL
 
@@ -218,10 +229,9 @@ and generate a Railway domain. Railway terminates TLS for its provided domain; d
 install certificates inside either container.
 
 The frontend domain is the application's only browser-facing origin during normal
-use. The optional backend public domain supports `/api/docs/`, `/api/redoc/`,
-`/api/schema/`, `/api/health/`, and technical API demonstrations. Never set the
-frontend BFF to this public backend URL. Start with Railway-provided domains; custom
-domain purchasing is outside this deployment.
+use. The backend public domain supports `/api/docs/`, `/api/redoc/`, `/api/schema/`,
+`/api/health/`, and technical API demonstrations. Never set the frontend BFF to this
+public backend URL. Railway provides and manages TLS for both public domains.
 
 ### Health checks
 
@@ -250,7 +260,7 @@ While CI runs, Railway keeps the deployment waiting; if a workflow fails, Railwa
 marks the deployment skipped. Do not add `railway up` or Railway credentials to
 GitHub Actions.
 
-### First deployment
+### Reproducing the deployment
 
 1. Create the Railway project `FlowBoard` and choose one region for the environment.
 2. Add Railway PostgreSQL as `Postgres`, keep it private, and review backup options.
@@ -302,17 +312,17 @@ changes. Do not perform a rollback merely as a healthy-deployment test.
 ### Production checklist
 
 - [ ] PostgreSQL provisioned privately; public TCP access remains disabled.
-- [ ] Frontend, backend, and Postgres share one environment and region.
+- [x] Frontend, backend, and Postgres share one environment in US East Metal (Virginia).
 - [ ] PostgreSQL Reference Variables resolve in the backend.
 - [ ] Independent strong Django and JWT secrets are generated and sealed.
 - [ ] `DJANGO_DEBUG=false`; HTTPS, secure cookies, and trusted proxy settings enabled.
 - [ ] Explicit public, private, and healthcheck hosts configured without wildcard.
 - [ ] Backend `/api/ready/` and frontend `/` healthchecks configured.
 - [ ] Frontend private backend Reference Variable uses internal HTTP.
-- [ ] Railway public HTTPS domains generated for frontend and optional backend docs.
-- [ ] GitHub source is `main`; Autodeploy and Wait for CI enabled on both services.
+- [x] Railway public HTTPS domains generated for frontend and backend documentation.
+- [x] GitHub source is `main`; Autodeploy and Wait for CI enabled on both services.
 - [ ] First deploy healthy; migrations and static collection visible in logs.
-- [ ] Swagger and frontend reachable through their real HTTPS domains.
+- [x] Swagger and frontend published through their real HTTPS domains.
 - [ ] Login and domain workflow verified through frontend same-origin routes.
 - [ ] Browser makes no direct backend requests.
 - [ ] Backend and frontend restart/redeploy without data loss.

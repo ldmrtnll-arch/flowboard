@@ -1,5 +1,12 @@
 # FlowBoard API
 
+## Production endpoints
+
+The API is deployed and active on Railway. The browser application is available at
+<https://frontend-production-29dc.up.railway.app>. Developer-facing documentation is
+available through [Swagger UI](https://backend-production-a62ad.up.railway.app/api/docs/)
+and [ReDoc](https://backend-production-a62ad.up.railway.app/api/redoc/).
+
 ## Architecture
 
 The application request path is `Browser -> Next.js BFF -> Django REST API -> PostgreSQL`. The developer documentation path is `Swagger/ReDoc -> Django REST API`.
@@ -24,9 +31,9 @@ failure response intentionally exposes no database details.
 
 ## API documentation
 
-- Swagger UI: `/api/docs/`
-- ReDoc: `/api/redoc/`
-- OpenAPI schema: `/api/schema/`
+- Live Swagger UI: `https://backend-production-a62ad.up.railway.app/api/docs/`
+- Live ReDoc: `https://backend-production-a62ad.up.railway.app/api/redoc/`
+- OpenAPI schema endpoint: `/api/schema/`
 - Versioned schema: `docs/openapi.yaml`
 
 Swagger is intended for interactive exploration. ReDoc provides a compact reference view. Both render the same generated OpenAPI contract.
