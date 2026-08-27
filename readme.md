@@ -6,6 +6,8 @@ A production-deployed full-stack project management application with an ordered 
 
 **Status:** Deployed · Active portfolio project
 
+**Current release target:** v1.0.0
+
 [Live application](https://frontend-production-29dc.up.railway.app) ·
 [Swagger UI](https://backend-production-a62ad.up.railway.app/api/docs/) ·
 [ReDoc](https://backend-production-a62ad.up.railway.app/api/redoc/)
@@ -17,6 +19,26 @@ Create an account through the live application to explore the complete workflow.
 FlowBoard helps an authenticated user organize client work as projects and tasks. Its main interaction is a persistent Kanban board that supports ordering within a column and moves across workflow stages.
 
 The project demonstrates a production-oriented boundary between a Next.js web application and a Django REST API. Browser requests pass through a Backend for Frontend (BFF), while ownership rules, validation, and ordering invariants remain enforced by the backend.
+
+## Application Preview
+
+### Dashboard
+
+![FlowBoard workspace dashboard](docs/images/dashboard.png)
+
+The dashboard provides direct access to client, project, and task workflows.
+
+### Project Management
+
+![FlowBoard project management screen](docs/images/projects.png)
+
+Projects connect client relationships to their delivery boards.
+
+### Kanban Board
+
+![FlowBoard project Kanban board](docs/images/kanban.png)
+
+The Kanban board persists same-column ordering and cross-column task moves.
 
 ## Features
 
